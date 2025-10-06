@@ -1,0 +1,80 @@
+# 🧩 Special Education Terms Knowledge Game
+
+An interactive, browser-based quiz designed to help parents and educators understand key terms and concepts in **Special Education**, including IEPs, 504 plans, LRE, PWN, and more. A bonus round features short **case scenarios** to test real-world application.
+
+---
+
+## 🎯 Purpose
+This game was created to support parent and educator understanding of foundational special education terms, processes, and rights. It can be used for:
+- Parent workshops or IEP information nights
+- Teacher training sessions
+- Self-paced learning modules
+
+---
+
+## 🕹️ How to Play
+1. The quiz begins automatically when the page loads.
+2. Read each question carefully and select the correct answer.
+3. Click **Next** to proceed to the next question.
+4. After completing all rounds (including bonus scenarios), your final score will appear.
+5. Click **Restart** to try again.
+
+---
+
+## 📁 Folder Structure
+```
+special-ed-terms-game/
+│
+├── index.html      # Main HTML file
+├── style.css       # Game styling and layout
+├── script.js       # JavaScript logic and interactivity
+└── README.md       # Project documentation (this file)
+```
+
+---
+
+## 🚀 Hosting via GitHub Pages
+You can make this game publicly available online for free using **GitHub Pages**:
+
+1. Create a new public repository on GitHub (e.g., `special-ed-terms-game`).
+2. Upload all files (`index.html`, `style.css`, `script.js`, and `README.md`).
+3. Go to **Settings → Pages**.
+4. Under **Source**, select:
+   ```
+   Branch: main
+   Folder: /(root)
+   ```
+5. Click **Save**. Your game will be live in a few seconds at:
+   ```
+   https://yourusername.github.io/special-ed-terms-game/
+   ```
+
+---
+
+## 🧠 Features
+- Multiple-choice quiz with immediate feedback.
+- Bonus round with real-world case scenarios.
+- Visual feedback for correct/incorrect answers.
+- Score summary and restart option.
+- Fully responsive and mobile-friendly.
+
+---
+
+## 💡 Future Enhancements
+Potential upgrades include:
+- Timed rounds or progress levels.
+- Leaderboard and data tracking.
+- Accessibility improvements (text-to-speech, contrast themes).
+- Integration into eLearning platforms (e.g., Articulate, Genially).
+
+---
+
+## 📜 License
+This project is open-source under the **MIT License**. You are free to use, modify, and share it for educational purposes.
+
+---
+
+## 👩🏽‍💻 Author
+**Createch Labs**  
+Educational Technology & Learning Design  
+Empowering schools, families, and communities through purposeful innovation.
