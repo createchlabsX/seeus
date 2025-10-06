@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Special Education Terms — Parent Quiz Game</title>
+  <style>
+    :root{--bg:#f6fbff;--card:#ffffff;--accent:#0b6cff;--muted:#6b7280}
+    body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial; background:var(--bg); color:#0f172a; margin:0; padding:24px;}
+    .wrap{max-width:900px;margin:0 auto}
+    header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    h1{font-size:1.25rem;margin:0}
+    .controls{display:flex;gap:8px;align-items:center}
+    .card{background:var(--card);border-radius:12px;padding:18px;box-shadow:0 6px 18px rgba(12,38,63,0.06);margin-top:18px}
+    select,input[type=button]{padding:8px 10px;border-radius:8px;border:1px solid #d1d5db}
+    button.primary{background:var(--accent);color:white;padding:8px 12px;border-radius:8px;border:0;cursor:pointer}
+    .meta{display:flex;gap:12px;align-items:center;color:var(--muted)}
+    .question{font-weight:600;margin-bottom:12px}
+    .choices{display:flex;flex-direction:column;gap:8px}
+    .choice{padding:10px;border-radius:8px;border:1px solid #e6edf8;cursor:pointer}
+    .choice:hover{background:#f0f6ff}
+    .feedback{margin-top:12px}
+    .scorebar{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+    .small{font-size:0.9rem;color:var(--muted)}
+    .hidden{display:none}
+    .match-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .match-list{display:flex;flex-direction:column;gap:8px}
+    .pair-row{display:flex;gap:8px;align-items:center}
+    footer{margin-top:18px;color:var(--muted);font-size:0.9rem}
+    .explain{margin-top:8px;padding:10px;border-radius:8px;background:#f8fafc;border:1px solid #e6eefc}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Special Education Terms — Parent Quiz Game</h1>
+      <div class="controls">
+        <label class="small">Mode:</label>
+        <select id="modeSelect">
+          <option value="terms">Terms Quiz</option>
+          <option value="match">Matching</option>
+          <option value="scenarios">Bonus: Case Scenarios</option>
+        </select>
+        <label class="small">Level:</label>
+        <select id="levelSelect">
+          <option value="beginner">Beginner</option>
+          <option value="intermediate">Intermediate</option>
+          <option value="advanced">Advanced</option>
+        </select>
+        <button class="primary" id="startBtn">Start</button>
+      </div>
+    </header>
+
+    <section class="card" id="gameCard">
+      <div id="intro">
+        <p class="small">Welcome — this simple game helps parents get familiar with common special education terms and real-world scenarios. Choose a mode and level then press <strong>Start</strong>.</p>
+        <ul class="small">
+          <li><strong>Terms Quiz</strong>: multiple-choice questions with short explanations.</li>
+          <li><strong>Matching</strong>: pair terms to definitions.</li>
+          <li><strong>Case Scenarios</strong>: scenario-based multiple choice that tests applied knowledge.</li>
+        </ul>
+      </div>
+
+      <div id="playArea" class="hidden">
+        <div class="meta">
+          <div id="progress">Question <span id="qIndex">1</span> of <span id="qTotal">10</span></div>
+          <div class="scorebar"><div class="small">Score: <strong id="score">0</strong></div></div>
+        </div>
+
+        <div id="questionCard" style="margin-top:12px">
+          <div class="question" id="questionText"></div>
+          <div class="choices" id="choices"></div>
+          <div class="feedback" id="feedback"></div>
+        </div>
+
+        <div id="matchCard" class="hidden">
+          <div class="small">Drag-free matching: pick the best definition from the dropdown beside each term.</div>
+          <div class="match-grid" id="matchGrid"></div>
+          <div style="margin-top:12px"><button id="submitMatch" class="primary">Submit Matches</button></div>
+          <div id="matchFeedback" class="feedback"></div>
+        </div>
+
+        <div style="margin-top:12px">
+          <button id="nextBtn" class="primary hidden">Next</button>
+          <button id="restartBtn" class="hidden">Restart</button>
+        </div>
+      </div>
+
+      <div id="resultArea" class="hidden">
+        <h3>Results</h3>
+        <p id="resultText"></p>
+        <div id="resultDetails"></div>
+        <div style="margin-top:12px"><button id="playAgain" class="primary">Play Again</button></div>
+      </div>
+    </section>
+
+    <footer>
+      Tip: Use this as a quick learning tool. Ask your child's team for clarifications — definitions here are condensed and parent-friendly.
+    </footer>
+  </div>
+
+  <script>
+    // Data: terms by level (term, short definition)
+    const TERMS = {
+      beginner: [
+        ["IEP","Individualized Education Program — a written plan that outlines special education services for a student."],
+        ["504 Plan","Accommodation plan under Section 504 that provides supports so a student can access learning."],
+        ["LRE","Least Restrictive Environment — educating students with disabilities alongside peers when appropriate."],
+        ["FAPE","Free Appropriate Public Education — legal right to special education services at no cost."],
+        ["IDEA","Individuals with Disabilities Education Act — federal law governing special education services."],
+        ["PWN","Prior Written Notice — school must notify parents in writing about proposed or refused actions."],
+        ["RTI","Response to Intervention — early intervention process to identify and support struggling students."],
+        ["Accommodations","Changes in how a student learns or is assessed (e.g., extended time)."],
+        ["Modifications","Changes to what a student is expected to learn (e.g., simplified assignments)."],
+        ["Related Services","Support services (speech, OT, counseling) that help a student benefit from instruction."]
+      ],
+      intermediate: [
+        ["Evaluation","Assessing a student's strengths and needs to determine eligibility for services."],
+        ["Eligibility Meeting","Team meeting to decide if a student qualifies for special education."],
+        ["Annual Review","Yearly IEP meeting to review progress and update goals."],
+        ["Reevaluation","Full review (often every 3 years) of a student's needs and services."],
+        ["Case Manager","Staff member who coordinates a student's IEP and communication with the family."],
+        ["Service Delivery Model","How special education services are provided (pull-out, push-in, consult)."],
+        ["BIP","Behavior Intervention Plan — plan to support positive behavior change."],
+        ["FBA","Functional Behavior Assessment — process to identify the cause of behaviors."],
+        ["Progress Monitoring","Ongoing checks to see if a student is making progress toward goals."],
+        ["Procedural Safeguards","Parent rights and protections under special education law."]
+      ],
+      advanced: [
+        ["Due Process Hearing","Formal legal procedure to resolve disputes between families and schools."],
+        ["Mediation","Voluntary meeting with a neutral mediator to resolve disagreements."],
+        ["Manifestation Determination","Review to decide if a student's behavior is linked to their disability."],
+        ["Transition Plan","Part of the IEP that plans for life after high school (education, work)."],
+        ["Assistive Technology","Devices or tools that support a student's learning or access."],
+        ["ESY","Extended School Year — services provided beyond the regular school year when needed."],
+        ["FERPA","Family Educational Rights and Privacy Act — protects the privacy of student education records."],
+        ["Disproportionality","When certain groups are overrepresented in special education placements."],
+        ["MTSS","Multi-Tiered System of Supports — whole-school framework for academic/behavior supports."],
+        ["Independent Educational Evaluation","IEE — an outside evaluation paid for by the district under certain conditions."]
+      ]
+    };
+
+    // Bonus scenarios
+    const SCENARIOS = [
+      {
+        q: "A parent receives a Prior Written Notice (PWN) saying the school is proposing not to evaluate their child. What should the parent do first?",
+        choices: [
+          "Sign the PWN and accept the school's decision.",
+          "Request clarification and ask for the evaluation or an Independent Educational Evaluation (IEE) if you disagree.",
+          "Ignore it; PWN is only informational.",
+          "Immediately request a due process hearing."
+        ],
+        a: 1,
+        explain: "PWN explains proposed or refused actions. Parents should ask clarifying questions and can request an IEE or pursue procedural safeguards if they disagree."
+      },
+      {
+        q: "A student has frequent behavioral incidents that interrupt learning. The team suggests a short suspension. What is an important next step?",
+        choices: [
+          "Remove the student without further review.",
+          "Do a Manifestation Determination to see if behavior is related to the disability.",
+          "Replace the IEP goals with academic goals only.",
+          "Demand immediate expulsion."
+        ],
+        a: 1,
+        explain: "If a disciplinary action changes placement, the team must determine whether the behavior was a manifestation of the student's disability."
+      },
+      {
+        q: "A high-school student is approaching age 16. What should the IEP team include?",
+        choices: [
+          "A Transition Plan with postsecondary goals and transition services.",
+          "Only more academic classes.",
+          "A note that the student will graduate automatically.",
+          "Nothing — transition planning is optional."
+        ],
+        a: 0,
+        explain: "By age 16 (some states earlier), the IEP must include transition planning to prepare for life after high school."
+      },
+      {
+        q: "A parent wants to know who will deliver special education instruction. Which role should they ask about?",
+        choices: [
+          "Case Manager or Special Education Teacher.",
+          "Only the Principal.",
+          "A peer student.",
+          "No one — this information is confidential."
+        ],
+        a: 0,
+        explain: "The IEP should specify who provides services. Case managers and special education teachers coordinate and deliver SDI."
+      }
+    ];
+
+    // Utility functions
+    function shuffle(arr){
+      for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]]}
+      return arr;
+    }
+
+    // State
+    let state = {mode:'terms',level:'beginner',questions:[],index:0,score:0,total:10,answers:[]};
+
+    // DOM refs
+    const modeSelect=document.getElementById('modeSelect');
+    const levelSelect=document.getElementById('levelSelect');
+    const startBtn=document.getElementById('startBtn');
+    const playArea=document.getElementById('playArea');
+    const intro=document.getElementById('intro');
+    const questionText=document.getElementById('questionText');
+    const choicesDiv=document.getElementById('choices');
+    const feedback=document.getElementById('feedback');
+    const qIndex=document.getElementById('qIndex');
+    const qTotal=document.getElementById('qTotal');
+    const scoreEl=document.getElementById('score');
+    const nextBtn=document.getElementById('nextBtn');
+    const restartBtn=document.getElementById('restartBtn');
+    const resultArea=document.getElementById('resultArea');
+    const resultText=document.getElementById('resultText');
+    const resultDetails=document.getElementById('resultDetails');
+    const playAgain=document.getElementById('playAgain');
+    const matchCard=document.getElementById('matchCard');
+    const matchGrid=document.getElementById('matchGrid');
+    const submitMatch=document.getElementById('submitMatch');
+    const matchFeedback=document.getElementById('matchFeedback');
+
+    startBtn.addEventListener('click',startGame);
+    nextBtn.addEventListener('click',nextQuestion);
+    restartBtn.addEventListener('click',()=>startGame(true));
+    playAgain.addEventListener('click',()=>location.reload());
+
+    submitMatch.addEventListener('click',submitMatches);
+
+    function startGame(restart=false){
+      state.mode=modeSelect.value;
+      state.level=levelSelect.value;
+      state.index=0;state.score=0;state.answers=[];
+      resultArea.classList.add('hidden');
+      intro.classList.add('hidden');
+      playArea.classList.remove('hidden');
+      nextBtn.classList.add('hidden'); restartBtn.classList.add('hidden');
+      scoreEl.textContent=state.score;
+
+      if(state.mode==='terms'){
+        prepareTerms();
+      } else if(state.mode==='scenarios'){
+        prepareScenarios();
+      } else if(state.mode==='match'){
+        prepareMatching();
+      }
+    }
+
+    function prepareTerms(){
+      // Build question bank from selected level
+      const bank = TERMS[state.level].map(item=>({term:item[0],def:item[1]}));
+      // Create multiple choice items (question: which definition matches term)
+      const questions=[];
+      const pool = [...bank];
+      for(const t of bank){
+        // pick 3 distractors
+        const distractors = shuffle(pool.filter(x=>x.term!==t.term)).slice(0,3).map(x=>x.def);
+        const choices = shuffle([t.def,...distractors]);
+        questions.push({q:`What does "${t.term}" mean?`,choices,answer:choices.indexOf(t.def),explain:t.def});
+      }
+      state.questions=shuffle(questions);
+      state.total=Math.min(state.questions.length,10);
+      qTotal.textContent=state.total;
+      showQuestion();
+    }
+
+    function prepareScenarios(){
+      state.questions=shuffle(SCENARIOS).map(s=>({q:s.q,choices:s.choices,answer:s.a,explain:s.explain}));
+      state.total=Math.min(state.questions.length,Math.max(4,SCENARIOS.length));
+      qTotal.textContent=state.total;
+      showQuestion();
+    }
+
+    function prepareMatching(){
+      matchGrid.innerHTML='';
+      matchCard.classList.remove('hidden');
+      document.getElementById('questionCard').classList.add('hidden');
+      // use a mix across levels for variety
+      const pool = [...TERMS.beginner,...TERMS.intermediate,...TERMS.advanced].map(x=>({term:x[0],def:x[1]}));
+      const sample = shuffle(pool).slice(0,6);
+      const defs = shuffle(sample.map(s=>s.def));
+      // build UI
+      sample.forEach((s,idx)=>{
+        const row = document.createElement('div'); row.className='pair-row';
+        const termDiv = document.createElement('div'); termDiv.style.flex='1'; termDiv.textContent = s.term;
+        const sel = document.createElement('select'); sel.dataset.termIndex = idx; sel.style.flex='2';
+        const emptyOpt = document.createElement('option'); emptyOpt.value=''; emptyOpt.textContent='Choose definition...'; sel.appendChild(emptyOpt);
+        defs.forEach((d,i)=>{const o=document.createElement('option'); o.value=d; o.textContent=d.substring(0,80)+(d.length>80?'...':''); sel.appendChild(o)});
+        row.appendChild(termDiv); row.appendChild(sel); matchGrid.appendChild(row);
+      });
+      // store correct mapping
+      matchCard.dataset.mapping = JSON.stringify(sample.map(s=>s.def));
+      qTotal.textContent = sample.length;
+      scoreEl.textContent = 0;
+      matchFeedback.innerHTML='';
+    }
+
+    function showQuestion(){
+      matchCard.classList.add('hidden');
+      document.getElementById('questionCard').classList.remove('hidden');
+      const qi = state.index;
+      qIndex.textContent = qi+1;
+      const item = state.questions[qi];
+      questionText.textContent = item.q;
+      choicesDiv.innerHTML = '';
+      feedback.innerHTML = '';
+      item.choices.forEach((c,i)=>{
+        const div = document.createElement('div'); div.className='choice'; div.tabIndex=0; div.textContent=c;
+        div.addEventListener('click',()=>selectChoice(i));
+        div.addEventListener('keydown',e=>{if(e.key==='Enter') selectChoice(i)});
+        choicesDiv.appendChild(div);
+      });
+      qTotal.textContent = state.total;
+    }
+
+    function selectChoice(i){
+      const qi = state.index; const item = state.questions[qi];
+      // prevent double answers
+      if(document.body.dataset.answered==='true') return;
+      document.body.dataset.answered='true';
+      const isCorrect = (i===item.answer);
+      if(isCorrect){ state.score+=1; scoreEl.textContent=state.score; feedback.innerHTML=`<div class="explain">✅ Correct — ${item.explain}</div>`; }
+      else{ feedback.innerHTML=`<div class="explain">❌ Incorrect. Correct answer: <strong>${item.choices[item.answer]}</strong><br>${item.explain}</div>`; }
+      state.answers.push({q:item.q, chosen:item.choices[i], correct:item.choices[item.answer], correctBool:isCorrect, explain:item.explain});
+      nextBtn.classList.remove('hidden');
+      restartBtn.classList.remove('hidden');
+    }
+
+    function nextQuestion(){
+      document.body.dataset.answered='';
+      nextBtn.classList.add('hidden');
+      if(state.index+1 < state.total && state.index+1 < state.questions.length){ state.index+=1; showQuestion(); }
+      else{ finishGame(); }
+    }
+
+    function finishGame(){
+      playArea.classList.add('hidden');
+      resultArea.classList.remove('hidden');
+      const percent = Math.round((state.score/state.total)*100);
+      resultText.textContent = `You scored ${state.score} out of ${state.total} (${percent}%).`;
+      // details
+      resultDetails.innerHTML='';
+      const list = document.createElement('div');
+      state.answers.forEach((a,idx)=>{
+        const d=document.createElement('div'); d.style.marginTop='8px';
+        d.innerHTML = `<strong>Q${idx+1}:</strong> ${a.q}<br><strong>Your answer:</strong> ${a.chosen} <br><strong>Correct:</strong> ${a.correct} <div class=\"explain\">${a.explain}</div>`;
+        list.appendChild(d);
+      });
+      if(state.answers.length===0) list.innerHTML='<div class="small">No answer records (matching mode provides separate feedback).</div>';
+      resultDetails.appendChild(list);
+    }
+
+    function submitMatches(){
+      const selects = matchGrid.querySelectorAll('select');
+      const correctMap = JSON.parse(matchCard.dataset.mapping);
+      let correct=0; const total=correctMap.length; const details=[];
+      selects.forEach((sel,i)=>{
+        const chosen = sel.value; const correctDef = correctMap[i];
+        const term = sel.parentNode.querySelector('div').textContent;
+        const isCorrect = chosen===correctDef;
+        if(isCorrect) correct++;
+        details.push({term,chosen,correctDef,isCorrect,explain:correctDef});
+      });
+      scoreEl.textContent = correct;
+      matchFeedback.innerHTML = `<div class="explain">You matched ${correct} out of ${total} correctly.</div>`;
+      // show details under
+      const detDiv = document.createElement('div'); detDiv.style.marginTop='10px';
+      details.forEach(d=>{
+        const r = document.createElement('div'); r.innerHTML = `<strong>${d.term}</strong> — ${d.isCorrect? 'Correct' : 'Incorrect'}<br><small>Correct definition:</small> ${d.correctDef}`;
+        detDiv.appendChild(r);
+      });
+      matchFeedback.appendChild(detDiv);
+      // record answers for potential review
+      state.answers = details.map(d=>({q:d.term,chosen:d.chosen,correct:d.correctDef,correctBool:d.isCorrect,explain:d.explain}));
+      // show final area
+      resultArea.classList.remove('hidden');
+      playArea.classList.add('hidden');
+      const percent = Math.round((correct/total)*100);
+      resultText.textContent = `Matching: ${correct} / ${total} (${percent}%)`;
+      resultDetails.innerHTML = '';
+      details.forEach((d,idx)=>{const e=document.createElement('div'); e.style.marginTop='8px'; e.innerHTML=`<strong>${d.term}</strong><br><small>Correct definition:</small> ${d.correctDef}<br>`; resultDetails.appendChild(e)});
+    }
+
+    // make keyboard accessible for choices by toggling selection with arrow keys (optional enhancement)
+
+    // Ensure initial state
+    (function init(){
+      // nothing more for now
+    })();
+  </script>
+</body>
+</html>
