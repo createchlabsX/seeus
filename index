@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Special Education Knowledge Game</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+
+    <!-- Landing Screen -->
+    <div id="landing-screen">
+      <h1>Special Education Knowledge Game</h1>
+      <p>Test your understanding of special education terms and real-world scenarios.</p>
+      <button id="start-btn">Start Game</button>
+    </div>
+
+    <!-- Main Quiz -->
+    <div id="game" class="hide">
+      <div id="question-container"></div>
+      <div id="answer-buttons" class="btn-grid"></div>
+      <button id="next-btn" class="next-btn">Next</button>
+    </div>
+
+    <!-- Bonus Round Intro -->
+    <div id="bonus-intro" class="hide">
+      <h2>🎉 Bonus Round! 🎉</h2>
+      <p>Now try a few real-world scenarios.</p>
+      <button id="start-bonus-btn">Start Bonus Round</button>
+    </div>
+
+    <!-- Results -->
+    <div id="result-container" class="hide">
+      <h2>Your Total Score: <span id="score"></span></h2>
+      <button id="restart-btn">Restart</button>
+    </div>
+    
+  </div>
+
+  <script
